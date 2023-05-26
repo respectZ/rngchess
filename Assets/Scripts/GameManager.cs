@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 enum Side { White, Black };
 enum Piece
@@ -59,6 +60,9 @@ public class GameManager : MonoBehaviour
     // Other stuffs
     [SerializeField]
     GameObject TurnText;
+
+    [SerializeField]
+    GameObject MainMenuButton;
 
     private bool IsGameOver = false;
     public GameObject[,] Pieces = new GameObject[9, 9];
@@ -593,11 +597,17 @@ public class GameManager : MonoBehaviour
         AddPawn<PieceKing>(4, 8, false);
 
     }
+    private void MainMenuClick()
+    {
+        SceneManager.LoadScene("Scenes/MainMenu");
+    }
     private void Start()
     {
         Debug.Log("Current turn is " + currentTurn);
         Initialize();
         ChangeTurnText();
+        // Add listener to button
+        MainMenuButton.GetComponent<Button>().onClick.AddListener(MainMenuClick);
 
         // foreach (GameObject piece in Pieces)
         // {
@@ -721,6 +731,8 @@ public class GameManager : MonoBehaviour
         if (AttackedArea[king.GetComponent<BasePiece>().x, king.GetComponent<BasePiece>().y])
         {
             IsGameOver = true;
+            // Enable MainMenuButton
+            MainMenuButton.SetActive(true);
             Debug.Log("Checkmate");
             // Show checkmate text
             TurnText.GetComponent<Text>().text = currentTurn == Side.White ? "Black Wins" : "White Wins";
