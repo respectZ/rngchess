@@ -58,6 +58,7 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     GameObject TurnText;
 
+    private bool IsGameOver = false;
     public GameObject[,] Pieces = new GameObject[9, 9];
     public bool[,] AttackedArea = new bool[9, 9];
     private GameObject[,] AttackedAreaList = new GameObject[9, 9];
@@ -684,6 +685,40 @@ public class GameManager : MonoBehaviour
         // Camera.main.backgroundColor = currentTurn == Side.White ? Color.white : Color.black;
     }
 
+    private void CheckForCheckmate()
+    {
+        GameObject king = null;
+        foreach (GameObject piece in Pieces)
+        {
+            if (piece == null)
+                continue;
+            if (piece.GetComponent<PieceKing>() != null)
+            {
+                if (piece.GetComponent<BasePiece>().isWhite && currentTurn == Side.Black)
+                {
+                    king = piece;
+                }
+                else if (!piece.GetComponent<BasePiece>().isWhite && currentTurn == Side.White)
+                {
+                    king = piece;
+                }
+            }
+        }
+        // Dummy solution for now
+        currentTurn = currentTurn == Side.White ? Side.Black : Side.White;
+        RefreshAttackedArea();
+        // Check for checkmate
+        if (AttackedArea[king.GetComponent<BasePiece>().x, king.GetComponent<BasePiece>().y])
+        {
+            IsGameOver = true;
+            Debug.Log("Checkmate");
+            // Show checkmate text
+            TurnText.GetComponent<Text>().text = currentTurn == Side.White ? "Black Wins" : "White Wins";
+            TurnText.GetComponent<Text>().color = currentTurn == Side.White ? Color.black : Color.white;
+        }
+        currentTurn = currentTurn == Side.White ? Side.Black : Side.White;
+    }
+
     private void PostMove()
     {
         // Do something
@@ -691,6 +726,9 @@ public class GameManager : MonoBehaviour
         RefreshAttackedArea();
         // Change turn text
         ChangeTurnText();
+        // Check for checkmate
+        CheckForCheckmate();
+        RefreshAttackedArea();
     }
     private void SelectPawn(GameObject pawn)
     {
@@ -721,6 +759,8 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            if (IsGameOver)
+                return;
             Vector3 clickPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector2 clickPosition = new Vector2(clickPoint.x, clickPoint.y);
             Vector2 roundedPosition = new Vector2(Mathf.Floor(clickPosition.x / 5.12f) + 1, Mathf.Floor(clickPosition.y / 5.12f) + 1);
