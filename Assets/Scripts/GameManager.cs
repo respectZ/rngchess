@@ -56,6 +56,7 @@ public class GameManager : MonoBehaviour
 
     public GameObject[,] Pieces = new GameObject[9, 9];
     public bool[,] AttackedArea = new bool[9, 9];
+    private GameObject[,] AttackedAreaList = new GameObject[9, 9];
     private GameObject SelectedPawn;
     private GameObject SelectedHighlight;
     public int CountPieces(int x, int y, int xDest, int yDest)
@@ -85,7 +86,7 @@ public class GameManager : MonoBehaviour
     {
         // X is start from 0 to 7
         // Y is start from 1 to 8
-        return !(x < 0 || x > 8 || y < 1 || y > 8);
+        return !(x < 0 || x > 7 || y < 1 || y > 8);
     }
     private void DrawAttackedArea(int x, int y)
     {
@@ -100,6 +101,7 @@ public class GameManager : MonoBehaviour
         go.transform.SetParent(Tilemap.transform);
         // Position
         go.transform.localPosition = new Vector3(x * 5.12f - (5.12f / 2), y * 5.12f - (5.12f / 2), 0);
+        AttackedAreaList[x, y] = go;
     }
     private void RefreshAttackedArea()
     {
@@ -109,15 +111,14 @@ public class GameManager : MonoBehaviour
             for (int j = 0; j < 9; j++)
             {
                 AttackedArea[i, j] = false;
+                if (AttackedAreaList[i, j] != null)
+                    Destroy(AttackedAreaList[i, j]);
             }
         }
         // Loop Pieces
         foreach (GameObject piece in Pieces)
         {
             if (piece == null)
-                continue;
-            BasePiece basePiece = piece.GetComponent<BasePiece>();
-            if (basePiece == null)
                 continue;
             // Pawn
             PiecePawn pawn = piece.GetComponent<PiecePawn>();
@@ -145,28 +146,32 @@ public class GameManager : MonoBehaviour
                 // Top
                 for (int i = rook.y + 1; i <= 8; i++)
                 {
-                    DrawAttackedArea(rook.x, i);
+                    if (IsOnBoard(rook.x, i))
+                        DrawAttackedArea(rook.x, i);
                     if (Pieces[rook.x, i] != null)
                         break;
                 }
                 // Bot
                 for (int i = rook.y - 1; i >= 1; i--)
                 {
-                    DrawAttackedArea(rook.x, i);
+                    if (IsOnBoard(rook.x, i))
+                        DrawAttackedArea(rook.x, i);
                     if (Pieces[rook.x, i] != null)
                         break;
                 }
                 // Right
                 for (int i = rook.x + 1; i <= 8; i++)
                 {
-                    DrawAttackedArea(i, rook.y);
+                    if (IsOnBoard(i, rook.y))
+                        DrawAttackedArea(i, rook.y);
                     if (Pieces[i, rook.y] != null)
                         break;
                 }
                 // Left
                 for (int i = rook.x - 1; i >= 1; i--)
                 {
-                    DrawAttackedArea(i, rook.y);
+                    if (IsOnBoard(i, rook.y))
+                        DrawAttackedArea(i, rook.y);
                     if (Pieces[i, rook.y] != null)
                         break;
                 }
@@ -251,31 +256,35 @@ public class GameManager : MonoBehaviour
             {
                 // Rook
                 // Top
-                for (int i = rook.y + 1; i <= 8; i++)
+                for (int i = queen.y + 1; i <= 8; i++)
                 {
-                    DrawAttackedArea(rook.x, i);
-                    if (Pieces[rook.x, i] != null)
+                    if (IsOnBoard(queen.x, i))
+                        DrawAttackedArea(queen.x, i);
+                    if (Pieces[queen.x, i] != null)
                         break;
                 }
                 // Bot
-                for (int i = rook.y - 1; i >= 1; i--)
+                for (int i = queen.y - 1; i >= 1; i--)
                 {
-                    DrawAttackedArea(rook.x, i);
-                    if (Pieces[rook.x, i] != null)
+                    if (IsOnBoard(queen.x, i))
+                        DrawAttackedArea(queen.x, i);
+                    if (Pieces[queen.x, i] != null)
                         break;
                 }
                 // Right
-                for (int i = rook.x + 1; i <= 8; i++)
+                for (int i = queen.x + 1; i <= 8; i++)
                 {
-                    DrawAttackedArea(i, rook.y);
-                    if (Pieces[i, rook.y] != null)
+                    if (IsOnBoard(i, queen.y))
+                        DrawAttackedArea(i, queen.y);
+                    if (Pieces[i, queen.y] != null)
                         break;
                 }
                 // Left
-                for (int i = rook.x - 1; i >= 1; i--)
+                for (int i = queen.x - 1; i >= 1; i--)
                 {
-                    DrawAttackedArea(i, rook.y);
-                    if (Pieces[i, rook.y] != null)
+                    if (IsOnBoard(i, queen.y))
+                        DrawAttackedArea(i, queen.y);
+                    if (Pieces[i, queen.y] != null)
                         break;
                 }
 
@@ -283,10 +292,10 @@ public class GameManager : MonoBehaviour
                 // Top Right
                 for (int i = 1; i <= 8; i++)
                 {
-                    if (IsOnBoard(bishop.x + i, bishop.y + i))
+                    if (IsOnBoard(queen.x + i, queen.y + i))
                     {
-                        DrawAttackedArea(bishop.x + i, bishop.y + i);
-                        if (Pieces[bishop.x + i, bishop.y + i] != null)
+                        DrawAttackedArea(queen.x + i, queen.y + i);
+                        if (Pieces[queen.x + i, queen.y + i] != null)
                             break;
                     }
                     else
@@ -295,10 +304,10 @@ public class GameManager : MonoBehaviour
                 // Top Left
                 for (int i = 1; i <= 8; i++)
                 {
-                    if (IsOnBoard(bishop.x - i, bishop.y + i))
+                    if (IsOnBoard(queen.x - i, queen.y + i))
                     {
-                        DrawAttackedArea(bishop.x - i, bishop.y + i);
-                        if (Pieces[bishop.x - i, bishop.y + i] != null)
+                        DrawAttackedArea(queen.x - i, queen.y + i);
+                        if (Pieces[queen.x - i, queen.y + i] != null)
                             break;
                     }
                     else
@@ -307,10 +316,10 @@ public class GameManager : MonoBehaviour
                 // Bot Right
                 for (int i = 1; i <= 8; i++)
                 {
-                    if (IsOnBoard(bishop.x + i, bishop.y - i))
+                    if (IsOnBoard(queen.x + i, queen.y - i))
                     {
-                        DrawAttackedArea(bishop.x + i, bishop.y - i);
-                        if (Pieces[bishop.x + i, bishop.y - i] != null)
+                        DrawAttackedArea(queen.x + i, queen.y - i);
+                        if (Pieces[queen.x + i, queen.y - i] != null)
                             break;
                     }
                     else
@@ -319,10 +328,10 @@ public class GameManager : MonoBehaviour
                 // Bot Left
                 for (int i = 1; i <= 8; i++)
                 {
-                    if (IsOnBoard(bishop.x - i, bishop.y - i))
+                    if (IsOnBoard(queen.x - i, queen.y - i))
                     {
-                        DrawAttackedArea(bishop.x - i, bishop.y - i);
-                        if (Pieces[bishop.x - i, bishop.y - i] != null)
+                        DrawAttackedArea(queen.x - i, queen.y - i);
+                        if (Pieces[queen.x - i, queen.y - i] != null)
                             break;
                     }
                     else
@@ -601,7 +610,7 @@ public class GameManager : MonoBehaviour
     private void PostMove()
     {
         // Do something
-        // RefreshAttackedArea();
+        RefreshAttackedArea();
     }
     private void SelectPawn(GameObject pawn)
     {
