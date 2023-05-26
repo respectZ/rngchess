@@ -23,6 +23,8 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     bool IsDebug = false;
+    [SerializeField]
+    bool IsPlayingWithComputer = false;
 
     // Sprites
     [SerializeField]
@@ -597,22 +599,30 @@ public class GameManager : MonoBehaviour
         Initialize();
         ChangeTurnText();
 
+        // foreach (GameObject piece in Pieces)
+        // {
+        //     if (piece == null)
+        //         continue;
+        //     Debug.Log(piece.GetComponent<BasePiece>().isWhite + " x: " + piece.GetComponent<BasePiece>().x + " y: " + piece.GetComponent<BasePiece>().y);
+        // }
 
     }
 
     private void MovePiece(GameObject piece, int x, int y, GameObject targetPiece = null)
     {
-        if (SelectedPawn == null)
-            return;
+        // if (SelectedPawn == null)
+        //     return;
 
         int origX = (int)Mathf.Floor(piece.GetComponent<BasePiece>().transform.localPosition.x / 5.12f) + 1;
         int origY = (int)Mathf.Floor(piece.GetComponent<BasePiece>().transform.localPosition.y / 5.12f) + 1;
+        // Debug.Log("Moving from " + origX + "," + origY + " to " + x + "," + y);
+        // Debug.Log("x: " + piece.GetComponent<BasePiece>().x + " y: " + piece.GetComponent<BasePiece>().y);
 
         // Check for obstructed path
         // Rook
         if (piece.GetComponent<PieceRook>() != null)
         {
-            if (CountPieces(SelectedPawn.GetComponent<BasePiece>().x, SelectedPawn.GetComponent<BasePiece>().y, x, y) > 0)
+            if (CountPieces(piece.GetComponent<BasePiece>().x, piece.GetComponent<BasePiece>().y, x, y) > 0)
             {
                 Debug.Log("Invalid move");
                 return;
@@ -621,7 +631,7 @@ public class GameManager : MonoBehaviour
         // Bishop
         else if (piece.GetComponent<PieceBishop>() != null)
         {
-            if (CountPiecesDiagonal(SelectedPawn.GetComponent<BasePiece>().x, SelectedPawn.GetComponent<BasePiece>().y, x, y) > 0)
+            if (CountPiecesDiagonal(piece.GetComponent<BasePiece>().x, piece.GetComponent<BasePiece>().y, x, y) > 0)
             {
                 Debug.Log("Invalid move count diagonal");
                 return;
@@ -633,7 +643,7 @@ public class GameManager : MonoBehaviour
             // Check if rook move
             if (origX == x && origY != y || origX != x && origY == y)
             {
-                if (CountPieces(SelectedPawn.GetComponent<BasePiece>().x, SelectedPawn.GetComponent<BasePiece>().y, x, y) > 0)
+                if (CountPieces(piece.GetComponent<BasePiece>().x, piece.GetComponent<BasePiece>().y, x, y) > 0)
                 {
                     Debug.Log("Invalid move");
                     return;
@@ -642,15 +652,14 @@ public class GameManager : MonoBehaviour
             else
             {
                 // Diagonal move
-                if (CountPiecesDiagonal(SelectedPawn.GetComponent<BasePiece>().x, SelectedPawn.GetComponent<BasePiece>().y, x, y) > 0)
+                if (CountPiecesDiagonal(piece.GetComponent<BasePiece>().x, piece.GetComponent<BasePiece>().y, x, y) > 0)
                 {
                     Debug.Log("Invalid move count diagonal");
                     return;
                 }
             }
         }
-        // Debug.Log("Moving from " + origX + "," + origY + " to " + x + "," + y);
-        bool ok = SelectedPawn.GetComponent<BasePiece>().Move(x, y, targetOccupied: targetPiece != null);
+        bool ok = piece.GetComponent<BasePiece>().Move(x, y, targetOccupied: targetPiece != null);
         if (!ok)
         {
             Debug.Log("Invalid move");
@@ -658,6 +667,7 @@ public class GameManager : MonoBehaviour
         }
         if (targetPiece != null)
         {
+            Debug.Log("hap");
             DeletePawn(x, y);
         }
         SelectedPawn = null;
@@ -757,6 +767,40 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+        if (currentTurn == Side.Black && IsPlayingWithComputer)
+        {
+            // GameObject[,] Clone = Util.ClonePieces(Pieces);
+            List<Vector2Int> Move = GetComponent<ChessAI>().GenerateMove(Pieces);
+            if (Move == null)
+            {
+                currentTurn = Side.White;
+                return;
+            }
+            Vector2Int from = Move[0];
+            Vector2Int to = Move[1];
+
+            // Raycast
+            GameObject target = Pieces[to.x, to.y];
+            // Debug.Log(new Vector2(from.x * 5.12f, from.y * 5.12f));
+            // if (hit.collider == null)
+            // {
+            //     currentTurn = Side.White;
+            //     return;
+            // }
+            GameObject piece = Pieces[from.x, from.y];
+
+            // foreach (GameObject piece in Pieces)
+            // {
+            //     if (piece == null)
+            //         continue;
+            //     Debug.Log(piece.GetComponent<BasePiece>().isWhite + " x: " + piece.GetComponent<BasePiece>().x + " y: " + piece.GetComponent<BasePiece>().y);
+            // }
+            // currentTurn = Side.White;
+            // return;
+
+
+            MovePiece(piece, to.x, to.y, target);
+        }
         if (Input.GetMouseButtonDown(0))
         {
             if (IsGameOver)
@@ -764,6 +808,7 @@ public class GameManager : MonoBehaviour
             Vector3 clickPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector2 clickPosition = new Vector2(clickPoint.x, clickPoint.y);
             Vector2 roundedPosition = new Vector2(Mathf.Floor(clickPosition.x / 5.12f) + 1, Mathf.Floor(clickPosition.y / 5.12f) + 1);
+            // Debug.Log("Clicked on " + clickPosition);
             int x = (int)roundedPosition.x;
             int y = (int)roundedPosition.y;
             // Check if the clicked position is a piece

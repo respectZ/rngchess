@@ -335,7 +335,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Tilemap: {fileID: 1244847334}
   IsDebug: 0
-  IsPlayingWithComputer: 1
+  IsPlayingWithComputer: 0
   WhitePawnSprite: {fileID: 21300000, guid: e358d50d3ece6504d81d14f4a1f91655, type: 3}
   BlackPawnSprite: {fileID: 21300000, guid: 9b636303235848847beb60149db6654e, type: 3}
   WhiteRookSprite: {fileID: 21300000, guid: 4b7a1657ebc77374a923bdecb2857db0, type: 3}
