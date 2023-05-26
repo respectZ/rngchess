@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 enum Side { White, Black };
 enum Piece
@@ -19,10 +20,9 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     GameObject Tilemap;
-    // [SerializeField]
-    // GameObject WhitePawn;
-    // [SerializeField]
-    // GameObject BlackPawn;
+
+    [SerializeField]
+    bool IsDebug = false;
 
     // Sprites
     [SerializeField]
@@ -53,6 +53,10 @@ public class GameManager : MonoBehaviour
     // Just white sprite square for highlight, attacked area
     [SerializeField]
     Sprite WhiteSquareSprite;
+
+    // Other stuffs
+    [SerializeField]
+    GameObject TurnText;
 
     public GameObject[,] Pieces = new GameObject[9, 9];
     public bool[,] AttackedArea = new bool[9, 9];
@@ -91,6 +95,8 @@ public class GameManager : MonoBehaviour
     private void DrawAttackedArea(int x, int y)
     {
         AttackedArea[x, y] = true;
+        if (!IsDebug)
+            return;
         GameObject go = new GameObject("Highlight");
         go.AddComponent<SpriteRenderer>();
         go.GetComponent<SpriteRenderer>().sprite = WhiteSquareSprite;
@@ -531,8 +537,7 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("Current turn is " + currentTurn);
         Initialize();
-
-
+        ChangeTurnText();
 
 
     }
@@ -607,10 +612,29 @@ public class GameManager : MonoBehaviour
         SelectedHighlight.GetComponent<SpriteRenderer>().color = new Color(0f, 1f, 1f, 0f);
     }
 
+    private void ChangeTurnText()
+    {
+        TurnText.GetComponent<Text>().text = currentTurn == Side.White ? "White Turn" : "Black Turn";
+        if (currentTurn == Side.White)
+        {
+            TurnText.transform.localPosition = new Vector3(1036.2f, -665.85f, 0f);
+        }
+        else
+        {
+            TurnText.transform.localPosition = new Vector3(1036.2f, 665.85f, 0f);
+        }
+        TurnText.GetComponent<Text>().color = currentTurn == Side.White ? Color.white : Color.black;
+        // Camera background too
+        // Camera.main.backgroundColor = currentTurn == Side.White ? Color.white : Color.black;
+    }
+
     private void PostMove()
     {
         // Do something
+        // Refresh attack area
         RefreshAttackedArea();
+        // Change turn text
+        ChangeTurnText();
     }
     private void SelectPawn(GameObject pawn)
     {
