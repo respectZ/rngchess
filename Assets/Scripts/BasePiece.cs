@@ -23,26 +23,26 @@ public class BasePiece : MonoBehaviour
     public bool isKing;
     public bool isMoved;
     public bool isProtectCheck = false; // Protect the king from check
+    private Vector2 target = new Vector2(-1, -1);
     PawnType pawnType = PawnType.Pawn;
-    // Start is called before the first frame update
-    void Start()
-    {
 
-    }
-
-    // Update is called once per frame
     void Update()
     {
+        float step = 100 * Time.deltaTime;
 
+        if (target.x == -1 && target.y == -1)
+            return;
+
+        // Move sprite towards the target location
+        transform.position = Vector2.MoveTowards(transform.position, target, step);
+        // If reached the target position
+        if (Vector2.Distance(transform.position, target) < 0.001f)
+        {
+            // Stop moving
+            target = new Vector2(-1, -1);
+        }
     }
 
-    public virtual void CreateHighlight()
-    {
-
-    }
-    public void ClearHighlight()
-    {
-    }
 
     public virtual bool IsValidMove(int x, int y, bool targetOccupied = false)
     {
@@ -60,7 +60,10 @@ public class BasePiece : MonoBehaviour
         }
         this.x = x;
         this.y = y;
-        transform.localPosition = new Vector3(x * 5.12f - (5.12f / 2), y * 5.12f - (5.12f / 2), 0);
+        if (!isCheck)
+            transform.localPosition = new Vector3(x * 5.12f - (5.12f / 2), y * 5.12f - (5.12f / 2), 0);
+        else
+            target = new Vector2(x * 5.12f - (5.12f / 2), y * 5.12f - (5.12f / 2));
         if (isCheck)
             isMoved = true;
         return true;
