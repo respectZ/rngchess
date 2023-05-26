@@ -88,7 +88,6 @@ public class GameManager : MonoBehaviour
     }
     private bool CanCastle(GameObject king, GameObject rook)
     {
-        Debug.Log("check is moved");
         if (king.GetComponent<BasePiece>().isMoved || rook.GetComponent<BasePiece>().isMoved)
             return false;
         // Get king position
@@ -100,14 +99,12 @@ public class GameManager : MonoBehaviour
         int yRook = rook.GetComponent<BasePiece>().y;
 
         // Check if there is any piece between king and rook
-        Debug.Log("check count pieces");
         if (CountPieces(x, y, xRook, yRook) > 0)
             return false;
 
         // Check if there's attacked area between king and rook
         int minX = Mathf.Min(x, xRook);
         int maxX = Mathf.Max(x, xRook);
-        Debug.Log("check attacked area");
         for (int i = minX; i <= maxX; i++)
         {
             if (AttackedArea[i, y])
