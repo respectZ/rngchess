@@ -86,6 +86,62 @@ public class GameManager : MonoBehaviour
 
         return count;
     }
+    private bool CanCastle(GameObject king, GameObject rook)
+    {
+        Debug.Log("check is moved");
+        if (king.GetComponent<BasePiece>().isMoved || rook.GetComponent<BasePiece>().isMoved)
+            return false;
+        // Get king position
+        int x = king.GetComponent<BasePiece>().x;
+        int y = king.GetComponent<BasePiece>().y;
+
+        // Get rook position
+        int xRook = rook.GetComponent<BasePiece>().x;
+        int yRook = rook.GetComponent<BasePiece>().y;
+
+        // Check if there is any piece between king and rook
+        Debug.Log("check count pieces");
+        if (CountPieces(x, y, xRook, yRook) > 0)
+            return false;
+
+        // Check if there's attacked area between king and rook
+        int minX = Mathf.Min(x, xRook);
+        int maxX = Mathf.Max(x, xRook);
+        Debug.Log("check attacked area");
+        for (int i = minX; i <= maxX; i++)
+        {
+            if (AttackedArea[i, y])
+                return false;
+        }
+
+        return true;
+    }
+    private bool DoCastle(GameObject king, GameObject rook)
+    {
+        if (!CanCastle(king, rook))
+            return false;
+        // Get king position
+        int x = king.GetComponent<BasePiece>().x;
+        int y = king.GetComponent<BasePiece>().y;
+
+        // Get rook position
+        int xRook = rook.GetComponent<BasePiece>().x;
+
+        // Move king
+        king.GetComponent<BasePiece>().Move(xRook, y, isCheck: false);
+        // Move rook
+        rook.GetComponent<BasePiece>().Move(x, y, isCheck: false);
+
+        SelectedPawn = null;
+        Pieces[xRook, y] = king;
+        Pieces[x, y] = rook;
+        currentTurn = currentTurn == Side.White ? Side.Black : Side.White;
+        PostMove();
+        // Reset Highlight
+        SelectedHighlight.GetComponent<SpriteRenderer>().color = new Color(0f, 1f, 1f, 0f);
+
+        return true;
+    }
     private bool IsOnBoard(int x, int y)
     {
         // X is start from 0 to 7
@@ -94,6 +150,8 @@ public class GameManager : MonoBehaviour
     }
     private void DrawAttackedArea(int x, int y)
     {
+        if (AttackedArea[x, y])
+            return;
         AttackedArea[x, y] = true;
         if (!IsDebug)
             return;
@@ -125,6 +183,8 @@ public class GameManager : MonoBehaviour
         foreach (GameObject piece in Pieces)
         {
             if (piece == null)
+                continue;
+            if (piece.GetComponent<BasePiece>().isWhite != (currentTurn != Side.White))
                 continue;
             // Pawn
             PiecePawn pawn = piece.GetComponent<PiecePawn>();
@@ -607,7 +667,6 @@ public class GameManager : MonoBehaviour
         Pieces[x, y] = piece;
         currentTurn = currentTurn == Side.White ? Side.Black : Side.White;
         PostMove();
-        Debug.Log("Current turn is " + currentTurn);
         // Reset Highlight
         SelectedHighlight.GetComponent<SpriteRenderer>().color = new Color(0f, 1f, 1f, 0f);
     }
@@ -676,6 +735,17 @@ public class GameManager : MonoBehaviour
             if (hit.collider != null)
             {
                 BasePiece piece = hit.collider.gameObject.GetComponent<BasePiece>();
+                // Check for castle
+                if (SelectedPawn != null)
+                {
+                    if ((SelectedPawn.GetComponent<PieceKing>() != null && hit.collider.gameObject.GetComponent<PieceRook>()) || (SelectedPawn.GetComponent<PieceRook>() != null && hit.collider.gameObject.GetComponent<PieceKing>()))
+                    {
+                        if (DoCastle(SelectedPawn, hit.collider.gameObject))
+                        {
+                            return;
+                        }
+                    }
+                }
                 if (currentTurn == Side.White && piece.isWhite)
                 {
                     SelectPawn(hit.collider.gameObject);
